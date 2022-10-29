@@ -1,0 +1,72 @@
+<div id="reader" width="600px"></div>
+
+
+<div id="userPanel" style="display:none">
+    <h1 id="userName">userName</h2>
+    
+    <button id='registerButton' class="btn btn-lg btn-block" onclick="registerUser()">Register</button>
+    
+    
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.1.js" integrity="sha256-3zlB5s2uwoUzrXK3BT7AX3FyvojsraNFxCc2vC/7pNI=" crossorigin="anonymous"></script>
+
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+var user = null;
+
+function onScanSuccess(decodedText, decodedResult) {
+    $.ajax({
+    type: "POST",
+    url: "/qr",
+    data: {codigo:decodedText},
+    success: function (result) {
+        user = result;
+        $('#userPanel').attr('style', 'display:block');
+        $('#userName').text(user.name);
+        if(user.status === 'pulsera'){
+            $('#registerButton').text("Ya fue registrado")
+            $('#registerButton').removeClass('btn-primary')
+            $('#registerButton').addClass('btn-warning')
+            $('#registerButton').attr('disabled', 'true')
+        }else{
+            $('#registerButton').text("Registrar")
+            $('#registerButton').removeClass('btn-warning')
+            $('#registerButton').addClass('btn-primary')
+            $('#registerButton').removeAttr("disabled");
+        }
+    },
+    dataType: "json"
+    });
+
+}
+
+function onScanFailure(error) {
+  // handle scan failure, usually better to ignore and keep scanning.
+  // for example:
+}
+
+function registerUser(){
+    $.ajax({
+    type: "POST",
+    url: "/registerUser",
+    data: user,
+    success: function (result) {
+        console.log("User registration");
+        
+    },
+    dataType: "json"
+    });
+    $('#userName').text("usuario registrado con exito");
+}
+
+let html5QrcodeScanner = new Html5QrcodeScanner(
+  "reader",
+  { fps: 10, qrbox: {width: 250, height: 250} },
+  /* verbose= */ false);
+html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+</script>
